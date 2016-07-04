@@ -16,6 +16,10 @@
 #invocation. If it's used a second time, the second instance will
 #clobber the first. Note that you can still use other flags, such as
 #the -m or -x modes, and submit additional FILES on the command line.
+#
+# 2) REBUILD A CLIENT
+# Atm -r recreate the hash and mtree files of all clients. With
+# -a|<client> rebuild a single client only
 
 # NOTES:
 # Files not included in hash-files will be listed (VERBOSE only)
@@ -51,7 +55,7 @@ where:
     -r --recreate         recreate the hash and mtree files of all clients
     -l --list             list clients
     -a --all              check integrity of all clients
-    <client>              check integrity of client"
+    <client>              check integrity of a client"
 
 EXPECTED_ARGS=1
 if [ $# -lt $EXPECTED_ARGS ]; then
