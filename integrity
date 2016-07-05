@@ -64,27 +64,34 @@ if [ $# -lt $EXPECTED_ARGS ]; then
 fi
 
 function check-integrity {
-	 (($VERBOSE)) && printf "[OK] integrity: >>> $CLIENT check started\n"
-	 if LOG=$(cd $LINKDIR; $HASHDEEP $HASHDEEPCONF $METADIR/$CLIENT.$EXTHASH $CLIENT/ 2>&1); then
-	     [[ ! -z $LOG ]] && printf "[ERR] integrity: $HASHDEEP log: $LOG\n"
-	     (($VERBOSE)) && printf "[OK] integrity: $CLIENT hash check finished\n"
-	 else
-	     printf "[ERR] integrity: $CLIENT $HASHDEEP error: $?\n"
-	     printf "[ERR] integrity: $CLIENT $HASHDEEP log: $LOG\n"
-	 fi
-	 if LOG=$(cd $LINKDIR; $MTREE -f $METADIR/$CLIENT.$EXTMTREE -p $CLIENT/ 2>&1); then
-	     (($VERBOSE)) && printf "[OK] integrity: $CLIENT mtree correct\n"
-	     (($VERBOSE)) && [[ ! -z $LOG ]] && printf "[OK] integrity: mtree: $LOG\n"
-	 else
-	     printf "[ERR] integrity: $CLIENT mtree error: $?\n"
-	     printf "[ERR] integrity: $CLIENT mtree log: $LOG\n"
-	 fi
-	 (($VERBOSE)) && printf "[OK] integrity: $CLIENT check finished <<<\n"
-
+    (($VERBOSE)) && printf "[OK] integrity: >>> $CLIENT check started\n"
+    if [ -e "$METADIR/$CLIENT.$EXTHASH" ]; then
+	if LOG=$(cd $LINKDIR; $HASHDEEP $HASHDEEPCONF $METADIR/$CLIENT.$EXTHASH $CLIENT/ 2>&1); then
+	    [[ ! -z $LOG ]] && printf "[ERR] integrity: $HASHDEEP log: $LOG\n"
+	    (($VERBOSE)) && printf "[OK] integrity: $CLIENT hash check finished\n"
+	else
+	    printf "[ERR] integrity: $CLIENT $HASHDEEP error: $?\n"
+	    printf "[ERR] integrity: $CLIENT $HASHDEEP log: $LOG\n"
+	fi
+    else
+	printf "[ERR] integrity: $METADIR/$CLIENT.$EXTHASH does not exist\n"
+    fi
+    if [ -e "$METADIR/$CLIENT.$EXTMTREE" ]; then
+        if LOG=$(cd $LINKDIR; $MTREE -f $METADIR/$CLIENT.$EXTMTREE -p $CLIENT/ 2>&1); then
+	    (($VERBOSE)) && printf "[OK] integrity: $CLIENT mtree correct\n"
+	    (($VERBOSE)) && [[ ! -z $LOG ]] && printf "[OK] integrity: mtree: $LOG\n"
+	else
+	    printf "[ERR] integrity: $CLIENT mtree error: $?\n"
+	    printf "[ERR] integrity: $CLIENT mtree log: $LOG\n"
+	fi
+    else
+	printf "[ERR] integrity: $METADIR/$CLIENT.$EXTMTREE does not exist\n"
+    fi
+    (($VERBOSE)) && printf "[OK] integrity: $CLIENT check finished <<<\n"
 }
 
 VERBOSE=1
-CLIENTS=$(cd $METADIR;ls -1 *.$EXTHASH | rev | cut -d'.' -f2- | rev)
+CLIENTS=$(cd $LINKDIR;ls -1)
 for i in "$@"; do
     case $i in
 	-h|--help)
@@ -96,7 +103,7 @@ for i in "$@"; do
 	    exit
 	    ;;
 	-c|--commands)
-	    printf "Commands to create the hash adn mtree files:\n"
+	    printf "Commands to create the hash and mtree files:\n"
 	    for i in $CLIENTS; do
 		printf "cd $LINKDIR; $HASHDEEP -e -o f -l -r $i/ > $METADIR/$i.$EXTHASH\n"
 		printf "cd $LINKDIR; $MTREE $MTREEKEYS -c -p $i/ > $METADIR/$i.$EXTMTREE\n"
