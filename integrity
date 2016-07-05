@@ -106,12 +106,12 @@ for i in "$@"; do
 	    ;;
 	-r|--recreate)
 	    for i in $CLIENTS; do
-		(($VERBOSE)) && printf "[OK] integrity: Recreate $METADIR/$i.$EXTHASH started\n"
+		(($VERBOSE)) && printf "[OK] integrity: > Recreate $METADIR/$i.$EXTHASH started\n"
 		cd $LINKDIR; $HASHDEEP -e -o f -l -r $i/ > $METADIR/$i.$EXTHASH
-		(($VERBOSE)) && printf "[OK] integrity: Recreate $METADIR/$i.$EXTHASH finished\n"
-		(($VERBOSE)) && printf "[OK] integrity: Recreate $METADIR/$i.$EXTMTREE started\n"
+		(($VERBOSE)) && printf "[OK] integrity:   Recreate $METADIR/$i.$EXTHASH finished <\n"
+		(($VERBOSE)) && printf "[OK] integrity: > Recreate $METADIR/$i.$EXTMTREE started\n"
 		cd $LINKDIR; $MTREE $MTREEKEYS -c -p $i/ > $METADIR/$i.$EXTMTREE
-		(($VERBOSE)) && printf "[OK] integrity: Recreating $METADIR/$i.$EXTMTREE finished\n"
+		(($VERBOSE)) && printf "[OK] integrity:   Recreate $METADIR/$i.$EXTMTREE finished <\n"
 	    done
 	    exit
 	    ;;
