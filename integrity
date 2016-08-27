@@ -68,11 +68,11 @@ function check-integrity {
     (($VERBOSE)) && printf "[OK] integrity: > $CLIENT check started\n"
     if [ -e "$METADIR/$CLIENT.$EXTHASH" ]; then
 	if LOG=$(cd $LINKDIR; $HASHDEEP $HASHDEEPCONF $METADIR/$CLIENT.$EXTHASH $CLIENT/ 2>&1); then
-	    [[ ! -z $LOG ]] && printf "[ERR] integrity:   $HASHDEEP log: $LOG\n"
+	    [[ ! -z $LOG ]] && printf "[ERR] integrity:   $HASHDEEP log: \n$LOG\n"
 	    (($VERBOSE)) && printf "[OK] integrity:   $CLIENT hash check finished\n"
 	else
 	    printf "[ERR] integrity:   $CLIENT $HASHDEEP error: $?\n"
-	    printf "[ERR] integrity:   $CLIENT $HASHDEEP log: $LOG\n"
+	    printf "[ERR] integrity:   $CLIENT $HASHDEEP log: \n$LOG\n"
 	fi
     elif [ $INIT -eq 1 ]; then
 	if LOG=$(cd $LINKDIR; $HASHDEEP -e -o f -l -r $CLIENT/ > $METADIR/$CLIENT.$EXTHASH); then
@@ -80,7 +80,7 @@ function check-integrity {
 	    (($VERBOSE)) && printf "[OK] integrity:   $CLIENT hash initialized\n"
 	else
 	    printf "[ERR] integrity:   $CLIENT $HASHDEEP error: $?\n"
-	    printf "[ERR] integrity:   $CLIENT $HASHDEEP log: $LOG\n"
+	    printf "[ERR] integrity:   $CLIENT $HASHDEEP log: \n$LOG\n"
 	fi
     else
 	printf "[ERR] integrity:   $METADIR/$CLIENT.$EXTHASH does not exist\n"
@@ -88,18 +88,18 @@ function check-integrity {
     if [ -e "$METADIR/$CLIENT.$EXTMTREE" ]; then
         if LOG=$(cd $LINKDIR; $MTREE -f $METADIR/$CLIENT.$EXTMTREE -p $CLIENT/ 2>&1); then
 	    (($VERBOSE)) && printf "[OK] integrity:   $CLIENT mtree correct\n"
-	    (($VERBOSE)) && [[ ! -z $LOG ]] && printf "[OK] integrity:   mtree: $LOG\n"
+	    (($VERBOSE)) && [[ ! -z $LOG ]] && printf "[OK] integrity:   mtree: \n$LOG\n"
 	else
 	    printf "[ERR] integrity:   $CLIENT mtree error: $?\n"
-	    printf "[ERR] integrity:   $CLIENT mtree log: $LOG\n"
+	    printf "[ERR] integrity:   $CLIENT mtree log: \n$LOG\n"
 	fi
     elif [ $INIT -eq 1 ]; then
         if LOG=$(cd $LINKDIR; $MTREE $MTREEKEYS -c -p $CLIENT/ >  $METADIR/$CLIENT.$EXTMTREE); then
 	    (($VERBOSE)) && printf "[OK] integrity:   $CLIENT mtree initialized\n"
-	    (($VERBOSE)) && [[ ! -z $LOG ]] && printf "[OK] integrity:   mtree: $LOG\n"
+	    (($VERBOSE)) && [[ ! -z $LOG ]] && printf "[OK] integrity:   mtree: \n$LOG\n"
 	else
 	    printf "[ERR] integrity:   $CLIENT mtree error: $?\n"
-	    printf "[ERR] integrity:   $CLIENT mtree log: $LOG\n"
+	    printf "[ERR] integrity:   $CLIENT mtree log: \n$LOG\n"
 	fi
     else
 	printf "[ERR] integrity:   $METADIR/$CLIENT.$EXTMTREE does not exist\n"
