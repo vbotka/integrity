@@ -1,6 +1,8 @@
 #!/usr/local/bin/bash
 #set -x
 
+VERSION="0.2.1"
+
 # TODO:
 # 1) REBUILD A CLIENT
 # Atm -r recreate the hash and mtree files of all clients. With
@@ -32,17 +34,18 @@ HASHDEEPCONF_CREATE="-e -o f -l "
 [ -f /etc/integrity ] && . /etc/integrity
 [ -f ~/.integrity ] && . ~/.integrity
 
-USAGE="$(basename "$0") [-h|--help] [-s|--silent] [-c|--commands] [-r|--recreate] [-l|--list]
-          [-i|--init] [-a|--all|<client>] -- check integrity
+USAGE="$(basename "$0") [-h|--help] [-s|--silent] [-c|--commands] [-l|--list] [-i|--init]
+                        [-v|--version] [-r|--recreate] [-a|--all|<client>] -- check integrity
 where:
-    -h --help             show this help
-    -s --silent           report errors only
-    -c --commands         list commands to create the hash and mtree files
-    -r --recreate         recreate the hash and mtree files of a <client>, or -all
-    -i --init             create missing hash and mtree files
-    -l --list             list clients
-    -a --all              check integrity of all clients
-    <client>              check integrity of a client"
+    -h --help ......... show this help and exit
+    -v --version ...... print version and exit
+    -l --list ......... list clients and exit
+    -c --commands ..... list commands to create the hash and mtree files and exit
+    -s --silent ....... report errors only
+    -i --init ......... create missing hash and mtree files
+    -r --recreate ..... recreate the hash and mtree files of a <client>, or -all
+    -a --all .......... check integrity of all clients
+    <client> .......... check integrity of a client"
 
 EXPECTED_ARGS=1
 if [ $# -lt $EXPECTED_ARGS ]; then
@@ -149,7 +152,11 @@ for i in "$@"; do
 	    RECREATE=1
 	    ;;
 	-h|--help)
-	    echo "$USAGE"
+	    printf "$USAGE\n"
+	    exit
+	    ;;
+	-v|--version)
+	    printf "$VERSION\n"
 	    exit
 	    ;;
 	-l|--list)
