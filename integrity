@@ -38,7 +38,7 @@ where:
     -h --help             show this help
     -s --silent           report errors only
     -c --commands         list commands to create the hash and mtree files
-    -r --recreate         recreate the hash and mtree files of all clients
+    -r --recreate         recreate the hash and mtree files of a <client>, or -all
     -i --init             create missing hash and mtree files
     -l --list             list clients
     -a --all              check integrity of all clients
@@ -70,6 +70,11 @@ function mtree-create-conf {
     MTREECONF_CREATE+="-c -p "
 #   (($VERBOSE)) && printf "[OK] integrity:   MTREECONF_CREATE=$MTREECONF_CREATE\n"
 }
+
+function create-client {
+    create-client-hash
+    create-client-mtree
+    }
 
 function create-client-hash {
     hash-create-conf
@@ -130,6 +135,7 @@ function check-integrity {
 
 VERBOSE=1
 INIT=0
+RECREATE=0
 CLIENTS=$(cd $LINKDIR;ls -1)
 for i in "$@"; do
     case $i in
@@ -138,6 +144,9 @@ for i in "$@"; do
 	    ;;
 	-i|--init)
 	    INIT=1
+	    ;;
+	-r|--recreate)
+	    RECREATE=1
 	    ;;
 	-h|--help)
 	    echo "$USAGE"
@@ -148,30 +157,25 @@ for i in "$@"; do
 	    exit
 	    ;;
 	-c|--commands)
-	    printf "Commands to create the hash and mtree files:\n"
-	    for i in $CLIENTS; do
-		printf "cd $LINKDIR; $HASHDEEP -e -o f -l -r $i/ > $METADIR/$i.$EXTHASH\n"
-		printf "cd $LINKDIR; $MTREE $MTREEKEYS -c -p $i/ > $METADIR/$i.$EXTMTREE\n"
-		printf "\n"
-	    done
-	    exit
-	    ;;
-	-r|--recreate)
-	    for CLIENT in $CLIENTS; do
-		create-client-hash
-		create-client-mtree
-	    done
+	    printf "Commands to create the hash and mtree files: TBD (wip)\n"
+#	    for i in $CLIENTS; do
+#		printf "cd $LINKDIR; $HASHDEEP -e -o f -l -r $i/ > $METADIR/$i.$EXTHASH\n"
+#		printf "cd $LINKDIR; $MTREE $MTREEKEYS -c -p $i/ > $METADIR/$i.$EXTMTREE\n"
+#		printf "\n"
+#	    done
 	    exit
 	    ;;
 	-a|--all)
 	    for CLIENT in $CLIENTS; do
-		check-integrity
+		(($RECREATE)) || check-integrity
+		(($RECREATE)) && create-client
 	    done
 	    ;;
 	*)
 	    if [[ $CLIENTS =~ $i ]] ; then
 		CLIENT=$i
-		check-integrity
+		(($RECREATE)) || check-integrity
+		(($RECREATE)) && create-client
 	    else
 		printf "[ERR] integrity: Unknown client $i\n"
 	    fi
