@@ -33,14 +33,16 @@ MTREE_REPORT_EXTRA_FILES_AS_ERROR="0"
 [ -f ~/.integrity ] && . ~/.integrity
 
 USAGE="
-integrity [-h|--help] [-s|--silent] [-c|--commands] [-l|--list] [-i|--init]
-          [-v|--version] [-r|--recreate] [-a|--all|<client>] -- check integrity
+integrity [-h|--help] [-v|--version] [-l|--list] [-c|--commands]
+          [-s|--silent] [-d|--debug]
+          [-i|--init] [-r|--recreate] [-a|--all|<client>] -- check integrity
 where:
     -h --help ......... show this help and exit
     -v --version ...... print version and exit
     -l --list ......... list clients and exit
     -c --commands ..... list commands to create the hash and mtree files and exit
     -s --silent ....... report errors only
+    -d --debug ........ print debug messages
     -i --init ......... create missing hash and mtree files
     -r --recreate ..... recreate the hash and mtree files of a <client>, or -all
     -a --all .......... check integrity of all clients
@@ -57,9 +59,14 @@ function log-ok {
     (($VERBOSE)) && printf "[OK]  integrity: $MESSAGE\n"
     }
 
+function log-dbg {
+    (($DEBUG)) && printf "[DBG] integrity: $MESSAGE\n"
+    }
+
 function log-err {
     printf "[ERR] integrity: $MESSAGE\n"
     }
+
 
 function hash-create-conf {
     if [ -s "$METADIR/$CLIENT.$EXTEXCLUDE" ]; then
@@ -70,7 +77,7 @@ function hash-create-conf {
     HASHDEEPCONF_CREATE+="-f "
     HASHDEEPCONF_CREATE+=$METADIR/$CLIENT
     HASHDEEPCONF_CREATE+=".files "
-#   (($VERBOSE)) && printf "[OK] integrity:   HASHDEEPCONF_CREATE=$HASHDEEPCONF_CREATE\n"
+    MESSAGE="  HASHDEEPCONF_CREATE=$HASHDEEPCONF_CREATE"; log-dbg
 }
 
 function mtree-create-conf {
@@ -78,7 +85,7 @@ function mtree-create-conf {
 	MTREECONF_CREATE="-X $METADIR/$CLIENT.$EXTEXCLUDE "
     fi
     MTREECONF_CREATE+="-c -p "
-#   (($VERBOSE)) && printf "[OK] integrity:   MTREECONF_CREATE=$MTREECONF_CREATE\n"
+    MESSAGE="  MTREECONF_CREATE=$MTREECONF_CREATE"; log-dbg
 }
 
 function create-client {
@@ -149,12 +156,16 @@ function check-integrity {
     MESSAGE="  $CLIENT check finished <"; log-ok
 }
 
+DEBUG=0
 VERBOSE=1
 INIT=0
 RECREATE=0
 CLIENTS=$(cd $LINKDIR;ls -1)
 for i in "$@"; do
     case $i in
+	-d|--debug)
+	    DEBUG=1
+	    ;;
 	-s|--silent)
 	    VERBOSE=0
 	    ;;
