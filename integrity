@@ -2,7 +2,7 @@
 #set -x
 
 VERSION="0.2-CURRENT"
-# VERSION="0.2.1"
+#VERSION="0.2.2"
 
 # NOTES:
 # Files not included in hash-files will be listed (VERBOSE only)
