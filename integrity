@@ -26,6 +26,8 @@ EXTEXCLUDE="exclude"
 # default set of keywords are flags, gid, link, mode, nlink, size, time, and uid
 MTREEKEYS="-k gid,link,mode,nlink,size,time,uid"
 HASHDEEPCONF_CREATE="-e -o f -l "
+MTREECONF=""
+MTREE_REPORT_EXTRA_FILES_AS_ERROR="0"
 
 [ -f /etc/integrity ] && . /etc/integrity
 [ -f ~/.integrity ] && . ~/.integrity
@@ -51,6 +53,14 @@ if [ $# -lt $EXPECTED_ARGS ]; then
 fi
 
 
+function log-ok {
+    (($VERBOSE)) && printf "[OK]  integrity: $MESSAGE\n"
+    }
+
+function log-err {
+    printf "[ERR] integrity: $MESSAGE\n"
+    }
+
 function hash-create-conf {
     if [ -s "$METADIR/$CLIENT.$EXTEXCLUDE" ]; then
 	find $LINKDIR/$CLIENT/ -type f | grep -vFf $METADIR/$CLIENT.$EXTEXCLUDE > $METADIR/$CLIENT.files
@@ -74,14 +84,6 @@ function mtree-create-conf {
 function create-client {
     create-client-hash
     create-client-mtree
-    }
-
-function log-ok {
-    (($VERBOSE)) && printf "[OK]  integrity: $MESSAGE\n"
-    }
-
-function log-err {
-    printf "[ERR] integrity: $MESSAGE\n"
     }
 
 function create-client-hash {
@@ -110,6 +112,10 @@ function create-client-mtree {
     MESSAGE="  Create $METADIR/$CLIENT.$EXTMTREE finished <"; log-ok
 }
 
+function mtree-conf {
+    (($MTREE_REPORT_EXTRA_FILES_AS_ERROR)) || MTREECONF+="-U "
+    }
+
 function check-integrity {
     MESSAGE="> $CLIENT check started"; log-ok
     if [ -e "$METADIR/$CLIENT.$EXTHASH" ]; then
@@ -125,8 +131,10 @@ function check-integrity {
     else
 	MESSAGE="  $METADIR/$CLIENT.$EXTHASH does not exist"; log-err
     fi
+
+    mtree-conf
     if [ -e "$METADIR/$CLIENT.$EXTMTREE" ]; then
-        if LOG=$(cd $LINKDIR; $MTREE -f $METADIR/$CLIENT.$EXTMTREE -p $CLIENT/ 2>&1); then
+        if LOG=$(cd $LINKDIR; $MTREE $MTREECONF -f $METADIR/$CLIENT.$EXTMTREE -p $CLIENT/ 2>&1); then
 	    [[ ! -z $LOG ]] && (MESSAGE="  $MTREE log: \n$LOG"; log-ok)
 	    MESSAGE="  $CLIENT mtree correct"; log-ok
 	else
@@ -165,10 +173,12 @@ for i in "$@"; do
 	    exit
 	    ;;
 	-l|--list)
+	    MESSAGE="  version $VERSION"; log-ok
 	    printf "$CLIENTS\n"
 	    exit
 	    ;;
 	-c|--commands)
+	    MESSAGE="  version $VERSION"; log-ok
 	    MESSAGE="  Commands to create the hash and mtree files: TBD (wip)"; log-ok
 #	    for i in $CLIENTS; do
 #		printf "cd $LINKDIR; $HASHDEEP -e -o f -l -r $i/ > $METADIR/$i.$EXTHASH\n"
@@ -178,6 +188,7 @@ for i in "$@"; do
 	    exit
 	    ;;
 	-a|--all)
+	    MESSAGE="  version $VERSION"; log-ok
 	    for CLIENT in $CLIENTS; do
 		(($RECREATE)) || check-integrity
 		(($RECREATE)) && create-client
