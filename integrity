@@ -39,16 +39,16 @@ integrity [-h|--help] [-v|--version] [-l|--list] [-c|--commands]
           [-s|--silent] [-d|--debug]
           [-i|--init] [-r|--recreate] [-a|--all|<client>] -- check integrity
 where:
-    -h --help ......... show this help and exit
-    -v --version ...... print version and exit
-    -l --list ......... list clients and exit
-    -c --commands ..... list commands to create the hash and mtree files and exit
-    -s --silent ....... report errors only
-    -d --debug ........ print debug messages
-    -i --init ......... create missing hash and mtree files
-    -r --recreate ..... recreate the hash and mtree files of a <client>, or -all
-    -a --all .......... check integrity of all clients
-    <client> .......... check integrity of a client"
+ -h --help ......... show this help and exit
+ -v --version ...... print version and exit
+ -l --list ......... list clients and exit
+ -c --commands ..... list commands to create the hash and mtree files and exit
+ -s --silent ....... report errors only
+ -d --debug ........ print debug messages
+ -i --init ......... create missing hash and mtree files
+ -r --recreate ..... recreate the hash and mtree files of a <client>, or --all
+ -a --all .......... check integrity of all clients
+ <client> .......... check integrity of a client"
 
 EXPECTED_ARGS=1
 if [ $# -lt $EXPECTED_ARGS ]; then
