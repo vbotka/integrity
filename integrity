@@ -11,11 +11,11 @@ VERSION="0.2-CURRENT"
 # CONFIGURATION:
 # Ubuntu configuration
 # HASHDEEP="/usr/bin/hashdeep"
-# HASHDEEPCONF="-w -o f -l -x -k"
+# HASHDEEPCONF="-o f -l -x -k"
 # MTREE="/usr/bin/fmtree"
 # FreeBSD configration
 HASHDEEP="/usr/local/bin/md5deep"
-HASHDEEPCONF="-w -o f -l -x"
+HASHDEEPCONF="-o f -l -x"
 MTREE="/usr/sbin/mtree"
 # General configuration
 LINKDIR="/integrity/link"
