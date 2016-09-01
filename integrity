@@ -69,10 +69,9 @@ function log-err {
     printf "[ERR] integrity: $MESSAGE\n"
 }
 
-
 function hash-create-conf {
     if [ -s "$METADIR/$CLIENT.$EXTEXCLUDE" ]; then
-	find $LINKDIR/$CLIENT/ -type f | grep -vFf $METADIR/$CLIENT.$EXTEXCLUDE > $METADIR/$CLIENT.files
+	find $LINKDIR/$CLIENT/ -type f | grep -vEFf $METADIR/$CLIENT.$EXTEXCLUDE > $METADIR/$CLIENT.files
     else
 	find $LINKDIR/$CLIENT/ -type f > $METADIR/$CLIENT.files
     fi
