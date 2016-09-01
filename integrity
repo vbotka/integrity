@@ -71,26 +71,33 @@ function log-err {
 
 function hash-create-conf {
     if [ -s "$METADIR/$CLIENT.$EXTEXCLUDE" ]; then
+	MESSAGE="  hash-create-conf: $METADIR/$CLIENT.$EXTEXCLUDE found."; log-dbg
 	find $LINKDIR/$CLIENT/ -type f | grep -vEf $METADIR/$CLIENT.$EXTEXCLUDE > $METADIR/$CLIENT.files
     elif [ -s "$METADIR/$EXTEXCLUDE.default" ]; then
+	MESSAGE="  hash-create-conf: $METADIR/$EXTEXCLUDE.default found."; log-dbg
 	find $LINKDIR/$CLIENT/ -type f | grep -vEf $METADIR/$EXTEXCLUDE.default > $METADIR/$CLIENT.files
     else
+	MESSAGE="  hash-create-conf: No exclude file found."; log-dbg
 	find $LINKDIR/$CLIENT/ -type f > $METADIR/$CLIENT.files
     fi
     HASHDEEPCONF_CREATE+="-f "
     HASHDEEPCONF_CREATE+=$METADIR/$CLIENT
     HASHDEEPCONF_CREATE+=".files "
-    MESSAGE="  HASHDEEPCONF_CREATE=$HASHDEEPCONF_CREATE"; log-dbg
+    MESSAGE="  hash-create-conf: HASHDEEPCONF_CREATE=$HASHDEEPCONF_CREATE"; log-dbg
 }
 
 function mtree-create-conf {
     if [ -s "$METADIR/$CLIENT.$EXTEXCLUDE" ]; then
+	MESSAGE="  mtree-create-conf: $METADIR/$CLIENT.$EXTEXCLUDE found."; log-dbg
 	MTREECONF_CREATE="-X $METADIR/$CLIENT.$EXTEXCLUDE "
     elif [ -s "$METADIR/$EXTEXCLUDE.default" ]; then
+	MESSAGE="  mtree-create-conf: $METADIR/$EXTEXCLUDE.default found."; log-dbg
 	MTREECONF_CREATE="-X $METADIR/$EXTEXCLUDE.default "
+    else
+	MESSAGE="  mtree-create-conf: No exclude file found."; log-dbg
     fi
     MTREECONF_CREATE+="-c -p "
-    MESSAGE="  MTREECONF_CREATE=$MTREECONF_CREATE"; log-dbg
+    MESSAGE="  mtree-create-conf: MTREECONF_CREATE=$MTREECONF_CREATE"; log-dbg
 }
 
 function create-client {
