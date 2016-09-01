@@ -35,12 +35,12 @@ MTREE_REPORT_EXTRA_FILES_AS_ERROR="0"
 [ -f ./.integrity ] && . ./.integrity
 
 USAGE="
-integrity [-h|--help] [-v|--version] [-l|--list] [-c|--commands]
+integrity [-h|--help] [-V|--version] [-l|--list] [-c|--commands]
           [-s|--silent] [-d|--debug]
           [-i|--init] [-r|--recreate] [-a|--all|<client>] -- check integrity
 where:
  -h --help ......... show this help and exit
- -v --version ...... print version and exit
+ -V --version ...... print version and exit
  -l --list ......... list clients and exit
  -c --commands ..... list commands to create the hash and mtree files and exit
  -s --silent ....... report errors only
@@ -181,7 +181,7 @@ for i in "$@"; do
 	    printf "$USAGE\n"
 	    exit
 	    ;;
-	-v|--version)
+	-V|--version)
 	    printf "$VERSION\n"
 	    exit
 	    ;;
