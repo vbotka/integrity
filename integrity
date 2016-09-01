@@ -72,6 +72,8 @@ function log-err {
 function hash-create-conf {
     if [ -s "$METADIR/$CLIENT.$EXTEXCLUDE" ]; then
 	find $LINKDIR/$CLIENT/ -type f | grep -vEf $METADIR/$CLIENT.$EXTEXCLUDE > $METADIR/$CLIENT.files
+    elif [ -s "$METADIR/$EXTEXCLUDE.default" ]; then
+	find $LINKDIR/$CLIENT/ -type f | grep -vEf $METADIR/$EXTEXCLUDE.default > $METADIR/$CLIENT.files
     else
 	find $LINKDIR/$CLIENT/ -type f > $METADIR/$CLIENT.files
     fi
@@ -84,6 +86,8 @@ function hash-create-conf {
 function mtree-create-conf {
     if [ -s "$METADIR/$CLIENT.$EXTEXCLUDE" ]; then
 	MTREECONF_CREATE="-X $METADIR/$CLIENT.$EXTEXCLUDE "
+    elif [ -s "$METADIR/$EXTEXCLUDE.default" ]; then
+	MTREECONF_CREATE="-X $METADIR/$EXTEXCLUDE.default "
     fi
     MTREECONF_CREATE+="-c -p "
     MESSAGE="  MTREECONF_CREATE=$MTREECONF_CREATE"; log-dbg
