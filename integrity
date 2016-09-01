@@ -1,8 +1,8 @@
 #!/usr/local/bin/bash
 #set -x
 
-VERSION="0.2.3-CURRENT"
-#VERSION="0.2.2"
+#VERSION="0.2.4-CURRENT"
+VERSION="0.2.3"
 
 # NOTES:
 # Files not included in hash-files will be listed (VERBOSE only)
