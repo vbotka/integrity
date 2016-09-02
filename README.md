@@ -6,4 +6,4 @@ integrity is a simple script to verify files' atributes and hashes. Uses [hashde
 
 Tested with FreeBSD and Ubuntu. Installation and configuration tested with https://galaxy.ansible.com/vbotka/ansible-integrity/
 
-Performance. Checking integrity of the set (bin, lib, sbin, usr-bin, usr-lib, usr-lib32, usr-local-bin, usr-local-etc, usr-local-lib, usr-local-sbin, usr-sbin) at a standard cloud VM takes ~10s.
+Performance. Checking integrity of the set (bin, lib, sbin, usr-bin, usr-lib, usr-lib32, usr-local-bin, usr-local-etc, usr-local-lib, usr-local-sbin, usr-sbin) of default FreeBSD system at a standard cloud VM takes ~10s.
