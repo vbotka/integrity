@@ -1,5 +1,6 @@
 integrity
 =========
+![license](https://img.shields.io/badge/license-BSD-red.svg)
 
 is a simple script to verify files' atributes and hashes. Uses "hashdeep" and "mtree".
 
