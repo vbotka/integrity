@@ -25,7 +25,7 @@ EXTMTREE="mtree"
 EXTEXCLUDE="exclude"
 # default set of keywords are flags, gid, link, mode, nlink, size, time, and uid
 MTREEKEYS="-k gid,link,mode,nlink,size,time,uid"
-HASHDEEPCONF_CREATE="-e -o f -l "
+HASHDEEPCONF_CREATE="-o f -l "
 MTREECONF=""
 MTREE_REPORT_EXTRA_FILES_AS_ERROR="0"
 
@@ -109,7 +109,7 @@ function create-client-hash {
     hash-create-conf
     MESSAGE="> Create $METADIR/$CLIENT.$EXTHASH started"; log-ok
     if LOG=$(cd $LINKDIR; $HASHDEEP $HASHDEEPCONF_CREATE > $METADIR/$CLIENT.$EXTHASH); then
-	[[ ! -z $LOG ]] && ($MESSAGE="  $HASHDEEP log: $LOG"; log-err)
+	[[ ! -z $LOG ]] && ($MESSAGE="  $HASHDEEP log: $LOG"; log-ok)
 	MESSAGE="  $CLIENT hash initialized"; log-ok
     else
 	MESSAGE="  $CLIENT $HASHDEEP error: $?"; log-err
@@ -122,8 +122,8 @@ function create-client-mtree {
     mtree-create-conf
     MESSAGE="> Create $METADIR/$CLIENT.$EXTMTREE started"; log-ok
     if LOG=$(cd $LINKDIR; $MTREE $MTREEKEYS $MTREECONF_CREATE $CLIENT/ >  $METADIR/$CLIENT.$EXTMTREE); then
-	MESSAGE="  $CLIENT mtree initialized"; log-ok
 	[[ ! -z $LOG ]] && (MESSAGE="  $MTREE: \n$LOG"; log-ok)
+	MESSAGE="  $CLIENT mtree initialized"; log-ok
     else
 	MESSAGE="  $CLIENT mtree error: $?"; log-err
 	MESSAGE="  $CLIENT mtree log: \n$LOG"; log-err
@@ -229,4 +229,4 @@ for i in "$@"; do
     esac
 done
 
-exit
+exit 0
