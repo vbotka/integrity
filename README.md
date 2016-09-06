@@ -1,6 +1,6 @@
 integrity
 =========
-![license](https://img.shields.io/badge/license-BSD-red.svg)
+[![license](https://img.shields.io/badge/license-BSD-red.svg)](https://www.freebsd.org/doc/en/articles/bsdl-gpl/article.html)
 
 integrity is a simple script to verify files' atributes and hashes. Uses [hashdeep](http://md5deep.sourceforge.net/) and [mtree](https://www.freebsd.org/cgi/man.cgi?mtree(8)). Intended use is to schedule it in cron and email admin the changes.
 
