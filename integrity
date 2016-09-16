@@ -36,7 +36,7 @@ MTREE_REPORT_EXTRA_FILES_AS_ERROR="0"
 
 USAGE="
 integrity [-h|--help] [-V|--version] [-l|--list] [-c|--commands]
-          [-s|--silent] [-d|--debug]
+          [-s|--silent] [-m|--mute] [-d|--debug]
           [-i|--init] [-r|--recreate] [-a|--all|<client>] -- check integrity
 where:
  -h --help ......... show this help and exit
@@ -44,6 +44,7 @@ where:
  -l --list ......... list clients and exit
  -c --commands ..... list commands to create the hash and mtree files and exit
  -s --silent ....... report errors only
+ -m --mute ......... do not list failed files
  -d --debug ........ print debug messages
  -i --init ......... create missing hash and mtree files
  -r --recreate ..... recreate the hash and mtree files of a <client>, or --all
@@ -139,11 +140,11 @@ function check-integrity {
     MESSAGE="> $CLIENT check started"; log-ok
     if [ -e "$METADIR/$CLIENT.$EXTHASH" ]; then
 	if LOG=$(cd $LINKDIR; $HASHDEEP $HASHDEEPCONF $METADIR/$CLIENT.$EXTHASH -f $METADIR/$CLIENT.files 2>&1); then
-	    [[ ! -z $LOG ]] && (MESSAGE="  $HASHDEEP log: \n$LOG"; log-err)
 	    MESSAGE="  $CLIENT hash check finished"; log-ok
+	    [[ ! -z $LOG ]] && (($MUTE)) || (MESSAGE="  $HASHDEEP log: \n$LOG"; log-err)
 	else
 	    MESSAGE="  $CLIENT $HASHDEEP error: $?"; log-err
-	    MESSAGE="  $CLIENT $HASHDEEP log: \n$LOG"; log-err
+	    (($MUTE)) || (MESSAGE="  $CLIENT $HASHDEEP log: \n$LOG"; log-err)
 	fi
     elif [ $INIT -eq 1 ]; then
 	create-client-hash
@@ -154,11 +155,11 @@ function check-integrity {
     mtree-conf
     if [ -e "$METADIR/$CLIENT.$EXTMTREE" ]; then
         if LOG=$(cd $LINKDIR; $MTREE $MTREECONF -f $METADIR/$CLIENT.$EXTMTREE -p $CLIENT/ 2>&1); then
-	    [[ ! -z $LOG ]] && (MESSAGE="  $MTREE log: \n$LOG"; log-ok)
 	    MESSAGE="  $CLIENT mtree correct"; log-ok
+	    [[ ! -z $LOG ]] && (($MUTE)) || (MESSAGE="  $MTREE log: \n$LOG"; log-ok)
 	else
 	    MESSAGE="  $CLIENT $MTREE error: $?"; log-err
-	    MESSAGE="  $CLIENT $MTREE log: \n$LOG"; log-err
+	    (($MUTE)) || (MESSAGE="  $CLIENT $MTREE log: \n$LOG"; log-err)
 	fi
     elif [ $INIT -eq 1 ]; then
 	create-client-mtree
@@ -170,6 +171,7 @@ function check-integrity {
 
 DEBUG=0
 VERBOSE=1
+MUTE=0
 INIT=0
 RECREATE=0
 CLIENTS=$(cd $LINKDIR;ls -1)
@@ -180,6 +182,9 @@ for i in "$@"; do
 	    ;;
 	-s|--silent)
 	    VERBOSE=0
+	    ;;
+	-m|--mute)
+	    MUTE=1
 	    ;;
 	-i|--init)
 	    INIT=1
