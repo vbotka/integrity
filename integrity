@@ -137,11 +137,16 @@ function mtree-conf {
 }
 
 function check-integrity {
+    check-integrity-hashdeep
+    check-integrity-mtree
+    }
+
+function check-integrity-hashdeep {
     MESSAGE="> $CLIENT check started"; log-ok
     if [ -e "$METADIR/$CLIENT.$EXTHASH" ]; then
 	if LOG=$(cd $LINKDIR; $HASHDEEP $HASHDEEPCONF $METADIR/$CLIENT.$EXTHASH -f $METADIR/$CLIENT.files 2>&1); then
 	    MESSAGE="  $CLIENT hash check finished"; log-ok
-	    [[ ! -z $LOG ]] && (($MUTE)) || (MESSAGE="  $HASHDEEP log: \n$LOG"; log-err)
+	    [[ ! -z $LOG ]] && ((($MUTE)) || (MESSAGE="  $HASHDEEP log: \n$LOG"; log-err))
 	else
 	    MESSAGE="  $CLIENT $HASHDEEP error: $?"; log-err
 	    (($MUTE)) || (MESSAGE="  $CLIENT $HASHDEEP log: \n$LOG"; log-err)
@@ -151,12 +156,14 @@ function check-integrity {
     else
 	MESSAGE="  $METADIR/$CLIENT.$EXTHASH does not exist"; log-err
     fi
+}
 
+function check-integrity-mtree {
     mtree-conf
     if [ -e "$METADIR/$CLIENT.$EXTMTREE" ]; then
         if LOG=$(cd $LINKDIR; $MTREE $MTREECONF -f $METADIR/$CLIENT.$EXTMTREE -p $CLIENT/ 2>&1); then
 	    MESSAGE="  $CLIENT mtree correct"; log-ok
-	    [[ ! -z $LOG ]] && (($MUTE)) || (MESSAGE="  $MTREE log: \n$LOG"; log-ok)
+	    [[ ! -z $LOG ]] && ((($MUTE)) || (MESSAGE="  $MTREE log: \n$LOG"; log-ok))
 	else
 	    MESSAGE="  $CLIENT $MTREE error: $?"; log-err
 	    (($MUTE)) || (MESSAGE="  $CLIENT $MTREE log: \n$LOG"; log-err)
