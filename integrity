@@ -37,26 +37,26 @@ MTREE_REPORT_EXTRA_FILES_AS_ERROR="0"
 USAGE="
 integrity [-h|--help] [-V|--version] [-l|--list] [-c|--commands]
           [-s|--silent] [-m|--mute] [-d|--debug]
-          [-i|--init] [-r|--recreate] [-a|--all|<client>] -- check integrity
+          [-i|--init] [-r|--recreate] [-a|--all|<client>]
+          -- check integrity of files
 where:
  -h --help ......... show this help and exit
  -V --version ...... print version and exit
  -l --list ......... list clients and exit
- -c --commands ..... list commands to create the hash and mtree files and exit
+ -c --commands ..... list commands to create hash and mtree files and exit
  -s --silent ....... report errors only
  -m --mute ......... do not list failed files
  -d --debug ........ print debug messages
  -i --init ......... create missing hash and mtree files
- -r --recreate ..... recreate the hash and mtree files of a <client>, or --all
+ -r --recreate ..... recreate hash and mtree files
  -a --all .......... check integrity of all clients
  <client> .......... check integrity of a client"
 
 EXPECTED_ARGS=1
 if [ $# -lt $EXPECTED_ARGS ]; then
     echo "$USAGE"
-    exit
+    exit 0
 fi
-
 
 function log-ok {
     (($VERBOSE)) && printf "[OK]  integrity: $MESSAGE\n"
@@ -139,7 +139,7 @@ function mtree-conf {
 function check-integrity {
     check-integrity-hashdeep
     check-integrity-mtree
-    }
+}
 
 function check-integrity-hashdeep {
     MESSAGE="> $CLIENT check started"; log-ok
@@ -188,6 +188,18 @@ RECREATE=0
 CLIENTS=$(cd $LINKDIR;ls -1)
 for i in "$@"; do
     case $i in
+	-h|--help)
+	    printf "$USAGE\n"
+	    exit 0
+	    ;;
+	-V|--version)
+	    printf "$VERSION\n"
+	    exit 0
+	    ;;
+	-l|--list)
+	    printf "$CLIENTS\n"
+	    exit 0
+	    ;;
 	-d|--debug)
 	    DEBUG=1
 	    ;;
@@ -203,41 +215,24 @@ for i in "$@"; do
 	-r|--recreate)
 	    RECREATE=1
 	    ;;
-	-h|--help)
-	    printf "$USAGE\n"
-	    exit
-	    ;;
-	-V|--version)
-	    printf "$VERSION\n"
-	    exit
-	    ;;
-	-l|--list)
-	    MESSAGE="  version $VERSION"; log-ok
-	    printf "$CLIENTS\n"
-	    exit
-	    ;;
 	-c|--commands)
-	    MESSAGE="  version $VERSION"; log-ok
-	    MESSAGE="  Commands to create the hash and mtree files: TBD (wip)"; log-ok
-	    #	    for i in $CLIENTS; do
-	    #		printf "cd $LINKDIR; $HASHDEEP -e -o f -l -r $i/ > $METADIR/$i.$EXTHASH\n"
-	    #		printf "cd $LINKDIR; $MTREE $MTREEKEYS -c -p $i/ > $METADIR/$i.$EXTMTREE\n"
-	    #		printf "\n"
-	    #	    done
-	    exit
+	    MESSAGE="  Commands to create the hash and mtree files: TBD"; log-ok
+	    #	for i in $CLIENTS; do
+	    #	printf "cd $LINKDIR; $HASHDEEP -e -o f -l -r $i/ > $METADIR/$i.$EXTHASH\n"
+	    #	printf "cd $LINKDIR; $MTREE $MTREEKEYS -c -p $i/ > $METADIR/$i.$EXTMTREE\n"
+	    #	printf "\n"
+	    #	done
+	    exit 0
 	    ;;
 	-a|--all)
-	    MESSAGE="  version $VERSION"; log-ok
 	    for CLIENT in $CLIENTS; do
-		(($RECREATE)) || check-integrity
-		(($RECREATE)) && create-client
+		(($RECREATE)) && create-client || check-integrity
 	    done
 	    ;;
 	*)
-	    if [[ $CLIENTS =~ $i ]] ; then
+	    if [[ $CLIENTS =~ $i ]]; then
 		CLIENT=$i
-		(($RECREATE)) || check-integrity
-		(($RECREATE)) && create-client
+		(($RECREATE)) && create-client || check-integrity
 	    else
 		MESSAGE="  Unknown client $i"; log-err
 	    fi
