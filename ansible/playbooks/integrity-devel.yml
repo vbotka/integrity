@@ -1,0 +1,83 @@
+---
+
+- hosts: integrity-testers
+  become: yes
+  become_method: sudo
+
+  vars:
+    bin_dir: "/root/bin" # without trailing slash
+    bin_items:
+      - integrity
+    source_path: "/scratch/integrity/" # with trailing slash
+    source_dest: "/usr/local/src/integrity-current/" # with trailing slash
+    source_link: "/usr/local/src/integrity"
+    source_lock: "/usr/local/src/integrity-current.lock"
+    source_lock_set: "yes"
+
+  tasks:
+    
+    - name: Install rsync (FreeBSD)
+      pkgng: name="{{item}}" state="present"
+      with_items:
+        - rsync
+      when: ansible_os_family == "FreeBSD"
+
+    - name: Install rsync (Debian)
+      apt: name="{{item}}" state="installed"
+      with_items:
+       - rsync
+      when: ansible_os_family == "Debian"
+
+    - name: Install rsync (RedHat)
+      yum: name="{{item}}" state="installed"
+      with_items:
+        - rsync
+      when: ansible_os_family == "RedHat"
+    
+      # Bug: Synchronize module asking for a password during playbook run #2156
+      # https://github.com/ansible/ansible-modules-core/issues/2156
+      # Fixed in ansible 2.0.1
+      # Workaround: Make dest writeable by ansible_user and disable sudo
+
+    - name: Set permissions and owner/group of {{source_dest}}
+      file: >
+        path="{{source_dest}}"
+        state="directory"
+        owner="{{ansible_user}}"
+        group={{ "wheel" if ansible_os_family == "FreeBSD" else "adm" }}
+        mode="0775"
+    
+    - name: Copy current source to {{source_dest}}
+      become: no
+      synchronize:
+        src: "{{source_path}}"
+        dest: "{{source_dest}}"
+        rsync_opts:
+          - "--no-motd"
+          - "--exclude=.git"
+    
+    - name: Create symbolic link to {{source_dest}}
+      file: >
+        src="{{source_dest}}"
+        dest="{{source_link}}"
+        state="link"
+        force="yes"
+
+    - name: Lock development version
+      command: sh -c "if [ ! -e {{source_lock}} ]; then touch {{source_lock}}; printf "current-lock-changed"; fi"
+      register: command_result
+      when: source_lock_set == "yes"
+      changed_when: command_result.stdout == "current-lock-changed"
+    
+    - name: Copy scripts to {{bin_dir}}
+      copy: >
+        src="{{source_link}}/{{item}}"
+        dest="{{bin_dir}}/{{item}}"
+        remote_src="yes"
+        owner="root"
+        group={{ "wheel" if ansible_os_family == "FreeBSD" else "root" }}
+        mode="0755"
+      with_items: "{{bin_items}}"
+
+# EOF
+...
