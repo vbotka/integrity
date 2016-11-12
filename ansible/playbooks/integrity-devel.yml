@@ -79,5 +79,22 @@
         mode="0755"
       with_items: "{{bin_items}}"
 
+    - name: Use /usr/local/bin/bash in FreeBSD
+      lineinfile: >
+        dest="{{bin_dir}}/{{item}}"
+        regexp="^#!"
+        line="#!/usr/local/bin/bash"
+      with_items: "{{bin_items}}"
+      when: ansible_os_family == "FreeBSD"
+
+    - name: Use /bin/bash in Linux
+      lineinfile: >
+        dest="{{bin_dir}}/{{item}}"
+        regexp="^#!"
+        line="#!/bin/bash"
+      with_items: "{{bin_items}}"
+      when: ansible_os_family == "Debian" or
+            ansible_os_family == "RedHat"
+
 # EOF
 ...
