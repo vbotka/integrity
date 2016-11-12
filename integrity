@@ -70,17 +70,23 @@ function log-err {
     printf "[ERR] integrity: $MESSAGE\n"
 }
 
-function hash-create-conf {
-    if [ -s "$METADIR/$CLIENT.$EXTEXCLUDE" ]; then
-	MESSAGE="  hash-create-conf: $METADIR/$CLIENT.$EXTEXCLUDE found."; log-dbg
+function find-files {
+        if [ -s "$METADIR/$CLIENT.$EXTEXCLUDE" ]; then
+	MESSAGE="  find-files: $METADIR/$CLIENT.$EXTEXCLUDE found."; log-dbg
+	MESSAGE="  find-files: find $LINKDIR/$CLIENT/ -type f | grep -vEf $METADIR/$CLIENT.$EXTEXCLUDE > $METADIR/$CLIENT.files"; log-dbg
 	find $LINKDIR/$CLIENT/ -type f | grep -vEf $METADIR/$CLIENT.$EXTEXCLUDE > $METADIR/$CLIENT.files
     elif [ -s "$METADIR/$EXTEXCLUDE.default" ]; then
-	MESSAGE="  hash-create-conf: $METADIR/$EXTEXCLUDE.default found."; log-dbg
+	MESSAGE="  find-files: $METADIR/$EXTEXCLUDE.default found."; log-dbg
+	MESSAGE="  find-files: find $LINKDIR/$CLIENT/ -type f | grep -vEf $METADIR/$EXTEXCLUDE.default > $METADIR/$CLIENT.files"; log-dbg
 	find $LINKDIR/$CLIENT/ -type f | grep -vEf $METADIR/$EXTEXCLUDE.default > $METADIR/$CLIENT.files
     else
-	MESSAGE="  hash-create-conf: No exclude file found."; log-dbg
+	MESSAGE="  find-files: No exclude file found."; log-dbg
+	MESSAGE="  find-files: find $LINKDIR/$CLIENT/ -type f > $METADIR/$CLIENT.files"; log-dbg
 	find $LINKDIR/$CLIENT/ -type f > $METADIR/$CLIENT.files
     fi
+}
+
+function hash-create-conf {
     HASHDEEPCONF_CREATE+="-f "
     HASHDEEPCONF_CREATE+=$METADIR/$CLIENT
     HASHDEEPCONF_CREATE+=".files "
@@ -102,6 +108,7 @@ function mtree-create-conf {
 }
 
 function create-client {
+    find-files
     create-client-hash
     create-client-mtree
 }
@@ -122,6 +129,7 @@ function create-client-hash {
 function create-client-mtree {
     mtree-create-conf
     MESSAGE="> Create $METADIR/$CLIENT.$EXTMTREE started"; log-ok
+    MESSAGE="  create-client-mtree: cd $LINKDIR; $MTREE $MTREEKEYS $MTREECONF_CREATE $CLIENT/ >  $METADIR/$CLIENT.$EXTMTREE"; log-dbg
     if LOG=$(cd $LINKDIR; $MTREE $MTREEKEYS $MTREECONF_CREATE $CLIENT/ >  $METADIR/$CLIENT.$EXTMTREE); then
 	[[ ! -z $LOG ]] && (MESSAGE="  $MTREE: \n$LOG"; log-ok)
 	MESSAGE="  $CLIENT mtree initialized"; log-ok
