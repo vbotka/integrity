@@ -64,7 +64,7 @@
         force="yes"
 
     - name: Lock development version
-      command: sh -c "if [ ! -e {{source_lock}} ]; then touch {{source_lock}}; printf "current-lock-changed"; fi"
+      command: sh -c "if [ ! -e {{source_lock}} ]; then touch {{source_lock}}; printf 'current-lock-changed'; fi"
       register: command_result
       when: source_lock_set == "yes"
       changed_when: command_result.stdout == "current-lock-changed"
