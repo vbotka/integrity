@@ -1,8 +1,8 @@
 #!/usr/local/bin/bash
 #set -x
 
-VERSION="0.2.6-CURRENT"
-#VERSION="0.2.6"
+VERSION="0.2.7-CURRENT"
+#VERSION="0.2.8"
 
 # NOTES:
 # Files not included in hash-files will be listed (VERBOSE only)
@@ -149,9 +149,16 @@ function create-client-mtree {
     MESSAGE="  Create $METADIR/$CLIENT.$EXTMTREE finished <"; log-ok
 }
 
-function mtree-conf {
-    MESSAGE="  function mtree-conf: void"; log-dbg
-    # TODO: -U modifies the filesystem
+function mtree-check-conf {
+    if [[ -s "$METADIR/$CLIENT.$EXTEXCLUDE" ]]; then
+	MESSAGE="  mtree-check-conf: $METADIR/$CLIENT.$EXTEXCLUDE found."; log-dbg
+	MTREECONF_CHECK="$MTREECONF -X $METADIR/$CLIENT.$EXTEXCLUDE"
+    elif [[ -s "$METADIR/$EXTEXCLUDE.default" ]]; then
+	MESSAGE="  mtree-check-conf: $METADIR/$EXTEXCLUDE.default found."; log-dbg
+	MTREECONF_CHECK="$MTREECONF -X $METADIR/$EXTEXCLUDE.default"
+    else
+	MESSAGE="  mtree-check-conf: No exclude file found."; log-dbg
+    fi
     # (($MTREE_REPORT_EXTRA_FILES_AS_ERROR)) || MTREECONF+="-U "
 }
 
@@ -183,10 +190,10 @@ function check-integrity-hashdeep {
 }
 
 function check-integrity-mtree {
-    mtree-conf
+    mtree-check-conf
     if [[ -e "$METADIR/$CLIENT.$EXTMTREE" ]]; then
-        MESSAGE="  check-integrity-mtree: cd $LINKDIR; $MTREE $MTREECONF -f $METADIR/$CLIENT.$EXTMTREE -p $CLIENT/"; log-dbg
-        if LOG=$(cd $LINKDIR; $MTREE $MTREECONF -f $METADIR/$CLIENT.$EXTMTREE -p $CLIENT/ 2>&1); then
+        MESSAGE="  check-integrity-mtree: cd $LINKDIR; $MTREE $MTREECONF_CHECK -f $METADIR/$CLIENT.$EXTMTREE -p $CLIENT/"; log-dbg
+        if LOG=$(cd $LINKDIR; $MTREE $MTREECONF_CHECK -f $METADIR/$CLIENT.$EXTMTREE -p $CLIENT/ 2>&1); then
 	    MESSAGE="  $CLIENT mtree correct"; log-ok
 	    [[ ! -z $LOG ]] && ((($MUTEMTREE)) || (MESSAGE="  $MTREE log: \n$LOG"; log-ok))
 	else
