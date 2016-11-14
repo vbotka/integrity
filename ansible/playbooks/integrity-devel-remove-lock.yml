@@ -1,0 +1,15 @@
+---
+
+- hosts: integrity-testers
+  become: yes
+  become_method: sudo
+  vars:
+    source_lock: "/usr/local/src/integrity-current.lock"
+  tasks:
+    - name: Unock development version
+      command: sh -c "if [ -e {{source_lock}} ]; then rm {{source_lock}}; printf 'current-lock-changed'; fi"
+      register: command_result
+      changed_when: command_result.stdout == "current-lock-changed"
+
+# EOF
+...
