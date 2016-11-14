@@ -40,7 +40,7 @@ LOGFILE="/var/log/integrity"
 USAGE="
 integrity [-h|--help] [-V|--version] [-l|--list] [-c|--commands]
           [-s|--silent] [-d|--debug]
-          [-mh|--mutehash] [-mh|--mutemtree] 
+          [-mh|--mutehash] [-mh|--mutemtree] [-me|--muteerrormtree]
           [-i|--init] [-r|--recreate] [-a|--all|<client>]
           -- check integrity of files
 where:
@@ -51,6 +51,7 @@ where:
  -s  --silent ....... report errors only
  -mh --mutehash ..... do not list failed hash files
  -mm --mutemtree .... do not list failed mtree files
+ -me --muteerrormtree do not report mtree errors to stdout
  -d  --debug ........ print debug messages
  -i  --init ......... create missing hash and mtree files
  -r  --recreate ..... recreate hash and mtree files
@@ -189,8 +190,15 @@ function check-integrity-mtree {
 	    MESSAGE="  $CLIENT mtree correct"; log-ok
 	    [[ ! -z $LOG ]] && ((($MUTEMTREE)) || (MESSAGE="  $MTREE log: \n$LOG"; log-ok))
 	else
-	    MESSAGE="  $CLIENT $MTREE error: $?"; log-err
-	    (($MUTEMTREE)) || (MESSAGE="  $CLIENT $MTREE log: \n$LOG"; log-err)
+	    if [[ $MUTEERRORMTREE -eq 1 ]]; then
+		MESSAGE="  $CLIENT $MTREE error: $?"
+		(($LOGTOFILE)) && printf "`date "+%F %T"` [ERR] integrity: $MESSAGE\n" >> $LOGFILE
+		(($MUTEMTREE)) || MESSAGE="  $CLIENT $MTREE log: \n$LOG"
+		(($LOGTOFILE)) && printf "`date "+%F %T"` [ERR] integrity: $MESSAGE\n" >> $LOGFILE
+	    else
+		MESSAGE="  $CLIENT $MTREE error: $?"; log-err
+		(($MUTEMTREE)) || (MESSAGE="  $CLIENT $MTREE log: \n$LOG"; log-err)
+	    fi
 	fi
     elif [[ $INIT -eq 1 ]]; then
 	create-client-mtree
@@ -204,6 +212,7 @@ DEBUG=0
 VERBOSE=1
 MUTEHASH=0
 MUTEMTREE=0
+MUTEERRORMTREE=0
 INIT=0
 RECREATE=0
 CLIENTS=$(cd $LINKDIR;ls -1)
@@ -232,6 +241,9 @@ for i in "$@"; do
 	    ;;
 	-mm|--mutemtree)
 	    MUTEMTREE=1
+	    ;;
+	-me|--muteerrormtree)
+	    MUTEERRORMTREE=1
 	    ;;
 	-i|--init)
 	    INIT=1
