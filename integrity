@@ -28,6 +28,9 @@ MTREEKEYS="-k gid,link,mode,nlink,size,time,uid"
 HASHDEEPCONF_CREATE="-o f -l "
 MTREECONF=""
 MTREE_REPORT_EXTRA_FILES_AS_ERROR="0"
+#
+LOGTOFILE="0"
+LOGFILE="/var/log/integrity"
 
 [ -f /etc/integrity ] && . /etc/integrity
 [ -f /usr/local/etc/integrity ] && . /usr/local/etc/integrity
@@ -36,46 +39,51 @@ MTREE_REPORT_EXTRA_FILES_AS_ERROR="0"
 
 USAGE="
 integrity [-h|--help] [-V|--version] [-l|--list] [-c|--commands]
-          [-s|--silent] [-m|--mute] [-d|--debug]
+          [-s|--silent] [-d|--debug]
+          [-mh|--mutehash] [-mh|--mutemtree] 
           [-i|--init] [-r|--recreate] [-a|--all|<client>]
           -- check integrity of files
 where:
- -h --help ......... show this help and exit
- -V --version ...... print version and exit
- -l --list ......... list clients and exit
- -c --commands ..... list commands to create hash and mtree files and exit
- -s --silent ....... report errors only
- -m --mute ......... do not list failed files
- -d --debug ........ print debug messages
- -i --init ......... create missing hash and mtree files
- -r --recreate ..... recreate hash and mtree files
- -a --all .......... check integrity of all clients
+ -h  --help ......... show this help and exit
+ -V  --version ...... print version and exit
+ -l  --list ......... list clients and exit
+ -c  --commands ..... list commands to create hash and mtree files and exit
+ -s  --silent ....... report errors only
+ -mh --mutehash ..... do not list failed hash files
+ -mm --mutemtree .... do not list failed mtree files
+ -d  --debug ........ print debug messages
+ -i  --init ......... create missing hash and mtree files
+ -r  --recreate ..... recreate hash and mtree files
+ -a  --all .......... check integrity of all clients
  <client> .......... check integrity of a client"
 
 EXPECTED_ARGS=1
-if [ $# -lt $EXPECTED_ARGS ]; then
+if [[ $# -lt $EXPECTED_ARGS ]]; then
     echo "$USAGE"
     exit 0
 fi
 
 function log-ok {
     (($VERBOSE)) && printf "[OK]  integrity: $MESSAGE\n"
+    (($LOGTOFILE)) && printf "`date "+%F %T"` [OK]  integrity: $MESSAGE\n" >> $LOGFILE
 }
 
 function log-dbg {
     (($DEBUG)) && printf "[DBG] integrity: $MESSAGE\n"
+    (($DEBUG)) && (($LOGTOFILE)) && printf "`date "+%F %T"` [DBG] integrity: $MESSAGE\n" >> $LOGFILE
 }
 
 function log-err {
     printf "[ERR] integrity: $MESSAGE\n"
+    (($LOGTOFILE)) && printf "`date "+%F %T"` [ERR] integrity: $MESSAGE\n" >> $LOGFILE
 }
 
 function find-files {
-        if [ -s "$METADIR/$CLIENT.$EXTEXCLUDE" ]; then
+    if [[ -s "$METADIR/$CLIENT.$EXTEXCLUDE" ]]; then
 	MESSAGE="  find-files: $METADIR/$CLIENT.$EXTEXCLUDE found."; log-dbg
 	MESSAGE="  find-files: find $LINKDIR/$CLIENT/ -type f | grep -vEf $METADIR/$CLIENT.$EXTEXCLUDE > $METADIR/$CLIENT.files"; log-dbg
 	find $LINKDIR/$CLIENT/ -type f | grep -vEf $METADIR/$CLIENT.$EXTEXCLUDE > $METADIR/$CLIENT.files
-    elif [ -s "$METADIR/$EXTEXCLUDE.default" ]; then
+    elif [[ -s "$METADIR/$EXTEXCLUDE.default" ]]; then
 	MESSAGE="  find-files: $METADIR/$EXTEXCLUDE.default found."; log-dbg
 	MESSAGE="  find-files: find $LINKDIR/$CLIENT/ -type f | grep -vEf $METADIR/$EXTEXCLUDE.default > $METADIR/$CLIENT.files"; log-dbg
 	find $LINKDIR/$CLIENT/ -type f | grep -vEf $METADIR/$EXTEXCLUDE.default > $METADIR/$CLIENT.files
@@ -94,10 +102,10 @@ function hash-create-conf {
 }
 
 function mtree-create-conf {
-    if [ -s "$METADIR/$CLIENT.$EXTEXCLUDE" ]; then
+    if [[ -s "$METADIR/$CLIENT.$EXTEXCLUDE" ]]; then
 	MESSAGE="  mtree-create-conf: $METADIR/$CLIENT.$EXTEXCLUDE found."; log-dbg
 	MTREECONF_CREATE="-X $METADIR/$CLIENT.$EXTEXCLUDE "
-    elif [ -s "$METADIR/$EXTEXCLUDE.default" ]; then
+    elif [[ -s "$METADIR/$EXTEXCLUDE.default" ]]; then
 	MESSAGE="  mtree-create-conf: $METADIR/$EXTEXCLUDE.default found."; log-dbg
 	MTREECONF_CREATE="-X $METADIR/$EXTEXCLUDE.default "
     else
@@ -141,7 +149,9 @@ function create-client-mtree {
 }
 
 function mtree-conf {
-    (($MTREE_REPORT_EXTRA_FILES_AS_ERROR)) || MTREECONF+="-U "
+    MESSAGE="  function mtree-conf: void"; log-dbg
+    # TODO: -U modifies the filesystem
+    # (($MTREE_REPORT_EXTRA_FILES_AS_ERROR)) || MTREECONF+="-U "
 }
 
 function check-integrity {
@@ -151,19 +161,20 @@ function check-integrity {
 
 function check-integrity-hashdeep {
     MESSAGE="> $CLIENT check started"; log-ok
-    if [ -e "$METADIR/$CLIENT.$EXTHASH" ]; then
-	if [ -s "$METADIR/$CLIENT.$EXTHASH" ]; then
+    if [[ -e "$METADIR/$CLIENT.$EXTHASH" ]]; then
+	if [[ -s "$METADIR/$CLIENT.$EXTHASH" ]]; then
+	    MESSAGE="cd $LINKDIR; $HASHDEEP $HASHDEEPCONF $METADIR/$CLIENT.$EXTHASH -f $METADIR/$CLIENT.files"; log-dbg
 	    if LOG=$(cd $LINKDIR; $HASHDEEP $HASHDEEPCONF $METADIR/$CLIENT.$EXTHASH -f $METADIR/$CLIENT.files 2>&1); then
 		MESSAGE="  $CLIENT hash check finished"; log-ok
-		[[ ! -z $LOG ]] && ((($MUTE)) || (MESSAGE="  $HASHDEEP log: \n$LOG"; log-err))
+		[[ ! -z $LOG ]] && ((($MUTEHASH)) || (MESSAGE="  $HASHDEEP log: \n$LOG"; log-err))
 	    else
 		MESSAGE="  $CLIENT $HASHDEEP error: $?"; log-err
-		(($MUTE)) || (MESSAGE="  $CLIENT $HASHDEEP log: \n$LOG"; log-err)
+		(($MUTEHASH)) || (MESSAGE="  $CLIENT $HASHDEEP log: \n$LOG"; log-err)
 	    fi
 	else
 	    MESSAGE="  $CLIENT hash file is empty"; log-ok
 	fi
-    elif [ $INIT -eq 1 ]; then
+    elif [[ $INIT -eq 1 ]]; then
 	create-client-hash
     else
 	MESSAGE="  $METADIR/$CLIENT.$EXTHASH does not exist"; log-err
@@ -172,15 +183,16 @@ function check-integrity-hashdeep {
 
 function check-integrity-mtree {
     mtree-conf
-    if [ -e "$METADIR/$CLIENT.$EXTMTREE" ]; then
+    if [[ -e "$METADIR/$CLIENT.$EXTMTREE" ]]; then
+        MESSAGE="  check-integrity-mtree: cd $LINKDIR; $MTREE $MTREECONF -f $METADIR/$CLIENT.$EXTMTREE -p $CLIENT/"; log-dbg
         if LOG=$(cd $LINKDIR; $MTREE $MTREECONF -f $METADIR/$CLIENT.$EXTMTREE -p $CLIENT/ 2>&1); then
 	    MESSAGE="  $CLIENT mtree correct"; log-ok
-	    [[ ! -z $LOG ]] && ((($MUTE)) || (MESSAGE="  $MTREE log: \n$LOG"; log-ok))
+	    [[ ! -z $LOG ]] && ((($MUTEMTREE)) || (MESSAGE="  $MTREE log: \n$LOG"; log-ok))
 	else
 	    MESSAGE="  $CLIENT $MTREE error: $?"; log-err
-	    (($MUTE)) || (MESSAGE="  $CLIENT $MTREE log: \n$LOG"; log-err)
+	    (($MUTEMTREE)) || (MESSAGE="  $CLIENT $MTREE log: \n$LOG"; log-err)
 	fi
-    elif [ $INIT -eq 1 ]; then
+    elif [[ $INIT -eq 1 ]]; then
 	create-client-mtree
     else
 	MESSAGE="  $METADIR/$CLIENT.$EXTMTREE does not exist"; log-err
@@ -190,7 +202,8 @@ function check-integrity-mtree {
 
 DEBUG=0
 VERBOSE=1
-MUTE=0
+MUTEHASH=0
+MUTEMTREE=0
 INIT=0
 RECREATE=0
 CLIENTS=$(cd $LINKDIR;ls -1)
@@ -214,8 +227,11 @@ for i in "$@"; do
 	-s|--silent)
 	    VERBOSE=0
 	    ;;
-	-m|--mute)
-	    MUTE=1
+	-mh|--mutehash)
+	    MUTEHASH=1
+	    ;;
+	-mm|--mutemtree)
+	    MUTEMTREE=1
 	    ;;
 	-i|--init)
 	    INIT=1
