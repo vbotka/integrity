@@ -84,10 +84,10 @@ function find-files {
 	MESSAGE="  find-files: $METADIR/$CLIENT.$EXTEXCLUDE found."; log-dbg
 	MESSAGE="  find-files: find $LINKDIR/$CLIENT/ -type f | grep -vEf $METADIR/$CLIENT.$EXTEXCLUDE > $METADIR/$CLIENT.files"; log-dbg
 	find $LINKDIR/$CLIENT/ -type f | grep -vEf $METADIR/$CLIENT.$EXTEXCLUDE > $METADIR/$CLIENT.files
-    elif [[ -s "$METADIR/$EXTEXCLUDE.default" ]]; then
-	MESSAGE="  find-files: $METADIR/$EXTEXCLUDE.default found."; log-dbg
-	MESSAGE="  find-files: find $LINKDIR/$CLIENT/ -type f | grep -vEf $METADIR/$EXTEXCLUDE.default > $METADIR/$CLIENT.files"; log-dbg
-	find $LINKDIR/$CLIENT/ -type f | grep -vEf $METADIR/$EXTEXCLUDE.default > $METADIR/$CLIENT.files
+    elif [[ -s "$METADIR/default.$EXTEXCLUDE" ]]; then
+	MESSAGE="  find-files: $METADIR/default.$EXTEXCLUDE found."; log-dbg
+	MESSAGE="  find-files: find $LINKDIR/$CLIENT/ -type f | grep -vEf $METADIR/default.$EXTEXCLUDE > $METADIR/$CLIENT.files"; log-dbg
+	find $LINKDIR/$CLIENT/ -type f | grep -vEf $METADIR/default.$EXTEXCLUDE > $METADIR/$CLIENT.files
     else
 	MESSAGE="  find-files: No exclude file found."; log-dbg
 	MESSAGE="  find-files: find $LINKDIR/$CLIENT/ -type f > $METADIR/$CLIENT.files"; log-dbg
@@ -106,9 +106,9 @@ function mtree-create-conf {
     if [[ -s "$METADIR/$CLIENT.$EXTEXCLUDE" ]]; then
 	MESSAGE="  mtree-create-conf: $METADIR/$CLIENT.$EXTEXCLUDE found."; log-dbg
 	MTREECONF_CREATE="-X $METADIR/$CLIENT.$EXTEXCLUDE "
-    elif [[ -s "$METADIR/$EXTEXCLUDE.default" ]]; then
-	MESSAGE="  mtree-create-conf: $METADIR/$EXTEXCLUDE.default found."; log-dbg
-	MTREECONF_CREATE="-X $METADIR/$EXTEXCLUDE.default "
+    elif [[ -s "$METADIR/default.$EXTEXCLUDE" ]]; then
+	MESSAGE="  mtree-create-conf: $METADIR/default.$EXTEXCLUDE found."; log-dbg
+	MTREECONF_CREATE="-X $METADIR/default.$EXTEXCLUDE "
     else
 	MESSAGE="  mtree-create-conf: No exclude file found."; log-dbg
     fi
@@ -153,9 +153,9 @@ function mtree-check-conf {
     if [[ -s "$METADIR/$CLIENT.$EXTEXCLUDE" ]]; then
 	MESSAGE="  mtree-check-conf: $METADIR/$CLIENT.$EXTEXCLUDE found."; log-dbg
 	MTREECONF_CHECK="$MTREECONF -X $METADIR/$CLIENT.$EXTEXCLUDE"
-    elif [[ -s "$METADIR/$EXTEXCLUDE.default" ]]; then
-	MESSAGE="  mtree-check-conf: $METADIR/$EXTEXCLUDE.default found."; log-dbg
-	MTREECONF_CHECK="$MTREECONF -X $METADIR/$EXTEXCLUDE.default"
+    elif [[ -s "$METADIR/default.$EXTEXCLUDE" ]]; then
+	MESSAGE="  mtree-check-conf: $METADIR/default.$EXTEXCLUDE found."; log-dbg
+	MTREECONF_CHECK="$MTREECONF -X $METADIR/default.$EXTEXCLUDE"
     else
 	MESSAGE="  mtree-check-conf: No exclude file found."; log-dbg
     fi
