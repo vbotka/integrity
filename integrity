@@ -152,14 +152,19 @@ function create-client-mtree {
 function mtree-check-conf {
     if [[ -s "$METADIR/$CLIENT.$EXTEXCLUDE" ]]; then
 	MESSAGE="  mtree-check-conf: $METADIR/$CLIENT.$EXTEXCLUDE found."; log-dbg
-	MTREECONF_CHECK="$MTREECONF -X $METADIR/$CLIENT.$EXTEXCLUDE"
+	MTREECONF_CHECK="$MTREECONF -X $METADIR/$CLIENT.$EXTEXCLUDE "
     elif [[ -s "$METADIR/default.$EXTEXCLUDE" ]]; then
 	MESSAGE="  mtree-check-conf: $METADIR/default.$EXTEXCLUDE found."; log-dbg
-	MTREECONF_CHECK="$MTREECONF -X $METADIR/default.$EXTEXCLUDE"
+	MTREECONF_CHECK="$MTREECONF -X $METADIR/default.$EXTEXCLUDE "
     else
 	MESSAGE="  mtree-check-conf: No exclude file found."; log-dbg
+	MTREECONF_CHECK="$MTREECONF"
     fi
-    # (($MTREE_REPORT_EXTRA_FILES_AS_ERROR)) || MTREECONF+="-U "
+    if [[ $MTREE_REPORT_EXTRA_FILES_AS_ERROR == 0 ]]; then
+	MTREECONF_CHECK+="-e "
+	MESSAGE="  mtree-check-conf: Do not report extra files."; log-dbg
+    fi
+    MESSAGE="  mtree-check-conf: MTREECONF_CHECK=$MTREECONF_CHECK"; log-dbg
 }
 
 function check-integrity {
