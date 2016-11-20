@@ -23,8 +23,9 @@ METADIR="/integrity/meta"
 EXTHASH="hashdeep"
 EXTMTREE="mtree"
 EXTEXCLUDE="exclude"
+EXTMTREEKEYS="mtreekeys"
 # default set of keywords are flags, gid, link, mode, nlink, size, time, and uid
-MTREEKEYS="-k gid,link,mode,nlink,size,time,uid"
+MTREEKEYS="gid,link,mode,nlink,size,time,uid"
 HASHDEEPCONF_CREATE="-o f -l "
 MTREECONF=""
 MTREE_REPORT_EXTRA_FILES_AS_ERROR="0"
@@ -32,10 +33,37 @@ MTREE_REPORT_EXTRA_FILES_AS_ERROR="0"
 LOGTOFILE="0"
 LOGFILE="/var/log/integrity"
 
-[ -f /etc/integrity ] && . /etc/integrity
-[ -f /usr/local/etc/integrity ] && . /usr/local/etc/integrity
-[ -f ~/.integrity ] && . ~/.integrity
-[ -f ./.integrity ] && . ./.integrity
+function log-ok {
+    (($VERBOSE)) && printf "[OK]  integrity: $MESSAGE\n"
+    (($LOGTOFILE)) && printf "`date "+%F %T"` [OK]  integrity: $MESSAGE\n" >> $LOGFILE
+}
+
+function log-dbg {
+    (($DEBUG)) && printf "[DBG] integrity: $MESSAGE\n"
+    (($DEBUG)) && (($LOGTOFILE)) && printf "`date "+%F %T"` [DBG] integrity: $MESSAGE\n" >> $LOGFILE
+}
+
+function log-err {
+    printf "[ERR] integrity: $MESSAGE\n"
+    (($LOGTOFILE)) && printf "`date "+%F %T"` [ERR] integrity: $MESSAGE\n" >> $LOGFILE
+}
+
+if [[ -f /etc/integrity ]]; then
+    MESSAGE="  configuration: /etc/integrity found."; log-dbg
+    . /etc/integrity
+fi
+if [[ -f /usr/local/etc/integrity ]]; then
+    MESSAGE="  configuration: /usr/local/etc/integrity found."; log-dbg
+    . /usr/local/etc/integrity
+fi
+if [[ -f ~/.integrity ]]; then
+    MESSAGE="  configuration: ~/.integrity found."; log-dbg
+    . ~/.integrity
+fi
+if [[ -f ./.integrity ]]; then
+    MESSAGE="  configuration: ./.integrity found."; log-dbg
+    . ./.integrity
+fi
 
 USAGE="
 integrity [-h|--help] [-V|--version] [-l|--list] [-c|--commands]
@@ -64,21 +92,6 @@ if [[ $# -lt $EXPECTED_ARGS ]]; then
     exit 0
 fi
 
-function log-ok {
-    (($VERBOSE)) && printf "[OK]  integrity: $MESSAGE\n"
-    (($LOGTOFILE)) && printf "`date "+%F %T"` [OK]  integrity: $MESSAGE\n" >> $LOGFILE
-}
-
-function log-dbg {
-    (($DEBUG)) && printf "[DBG] integrity: $MESSAGE\n"
-    (($DEBUG)) && (($LOGTOFILE)) && printf "`date "+%F %T"` [DBG] integrity: $MESSAGE\n" >> $LOGFILE
-}
-
-function log-err {
-    printf "[ERR] integrity: $MESSAGE\n"
-    (($LOGTOFILE)) && printf "`date "+%F %T"` [ERR] integrity: $MESSAGE\n" >> $LOGFILE
-}
-
 function find-files {
     if [[ -s "$METADIR/$CLIENT.$EXTEXCLUDE" ]]; then
 	MESSAGE="  find-files: $METADIR/$CLIENT.$EXTEXCLUDE found."; log-dbg
@@ -103,6 +116,7 @@ function hash-create-conf {
 }
 
 function mtree-create-conf {
+# configure exclude file
     if [[ -s "$METADIR/$CLIENT.$EXTEXCLUDE" ]]; then
 	MESSAGE="  mtree-create-conf: $METADIR/$CLIENT.$EXTEXCLUDE found."; log-dbg
 	MTREECONF_CREATE="-X $METADIR/$CLIENT.$EXTEXCLUDE "
@@ -114,6 +128,17 @@ function mtree-create-conf {
     fi
     MTREECONF_CREATE+="-c -p "
     MESSAGE="  mtree-create-conf: MTREECONF_CREATE=$MTREECONF_CREATE"; log-dbg
+
+# configure mtree keywords
+    MTREEKEYS_CREATE="-k "
+    MESSAGE="  mtree-create-conf: MTREEKEYS_CREATE=$MTREEKEYS_CREATE"; log-dbg
+    if [[ -s "$METADIR/$CLIENT.$EXTMTREEKEYS" ]]; then
+	MESSAGE="  mtree-create-conf: $METADIR/$CLIENT.$EXTMTREEKEYS found."; log-dbg
+	MTREEKEYS_CREATE+=`cat $METADIR/$CLIENT.$EXTMTREEKEYS`
+    else
+	MTREEKEYS_CREATE+=$MTREEKEYS
+    fi
+    MESSAGE="  mtree-create-conf: MTREEKEYS_CREATE=$MTREEKEYS_CREATE"; log-dbg
 }
 
 function create-client {
@@ -138,8 +163,8 @@ function create-client-hash {
 function create-client-mtree {
     mtree-create-conf
     MESSAGE="> Create $METADIR/$CLIENT.$EXTMTREE started"; log-ok
-    MESSAGE="  create-client-mtree: cd $LINKDIR; $MTREE $MTREEKEYS $MTREECONF_CREATE $CLIENT/ >  $METADIR/$CLIENT.$EXTMTREE"; log-dbg
-    if LOG=$(cd $LINKDIR; $MTREE $MTREEKEYS $MTREECONF_CREATE $CLIENT/ >  $METADIR/$CLIENT.$EXTMTREE); then
+    MESSAGE="  create-client-mtree: cd $LINKDIR; $MTREE $MTREEKEYS_CREATE $MTREECONF_CREATE $CLIENT/ >  $METADIR/$CLIENT.$EXTMTREE"; log-dbg
+    if LOG=$(cd $LINKDIR; $MTREE $MTREEKEYS_CREATE $MTREECONF_CREATE $CLIENT/ >  $METADIR/$CLIENT.$EXTMTREE); then
 	[[ ! -z $LOG ]] && (MESSAGE="  $MTREE: \n$LOG"; log-ok)
 	MESSAGE="  $CLIENT mtree initialized"; log-ok
     else
@@ -244,6 +269,10 @@ for i in "$@"; do
 	    ;;
 	-d|--debug)
 	    DEBUG=1
+	    [[ -f /etc/integrity ]] && (MESSAGE="  configuration: /etc/integrity found."; log-dbg)
+	    [[ -f /usr/local/etc/integrity ]] && (MESSAGE="  configuration: /usr/local/etc/integrity found."; log-dbg)
+	    [[ -f ~/.integrity ]] && (ESSAGE="  configuration: ~/.integrity found."; log-dbg)
+	    [[ -f ./.integrity ]] && (MESSAGE="  configuration: ./.integrity found."; log-dbg)
 	    ;;
 	-s|--silent)
 	    VERBOSE=0
