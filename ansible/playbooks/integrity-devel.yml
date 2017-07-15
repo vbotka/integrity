@@ -46,12 +46,14 @@
         owner="{{ansible_user}}"
         group={{ "wheel" if ansible_os_family == "FreeBSD" else "adm" }}
         mode="0775"
-    
+
     - name: Copy current source to {{source_dest}}
       become: no
       synchronize:
         src: "{{source_path}}"
         dest: "{{source_dest}}"
+        recursive: "yes"
+        archive: "no"
         rsync_opts:
           - "--no-motd"
           - "--exclude=.git"
