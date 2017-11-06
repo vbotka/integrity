@@ -130,7 +130,7 @@ function mtree-create-conf {
     MESSAGE="  mtree-create-conf: MTREECONF_CREATE=$MTREECONF_CREATE"; log-dbg
 
 # configure mtree keywords
-    MTREEKEYS_CREATE="-k "
+    MTREEKEYS_CREATE="-K "
     MESSAGE="  mtree-create-conf: MTREEKEYS_CREATE=$MTREEKEYS_CREATE"; log-dbg
     if [[ -s "$METADIR/$CLIENT.$EXTMTREEKEYS" ]]; then
 	MESSAGE="  mtree-create-conf: $METADIR/$CLIENT.$EXTMTREEKEYS found."; log-dbg
