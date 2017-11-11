@@ -271,7 +271,7 @@ for i in "$@"; do
 	    DEBUG=1
 	    [[ -f /etc/integrity ]] && (MESSAGE="  configuration: /etc/integrity found."; log-dbg)
 	    [[ -f /usr/local/etc/integrity ]] && (MESSAGE="  configuration: /usr/local/etc/integrity found."; log-dbg)
-	    [[ -f ~/.integrity ]] && (ESSAGE="  configuration: ~/.integrity found."; log-dbg)
+	    [[ -f ~/.integrity ]] && (MESSAGE="  configuration: ~/.integrity found."; log-dbg)
 	    [[ -f ./.integrity ]] && (MESSAGE="  configuration: ./.integrity found."; log-dbg)
 	    ;;
 	-s|--silent)
