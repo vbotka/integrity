@@ -1,0 +1,82 @@
+#!/bin/bash
+
+# Fix package: ca-certificates 20170717
+
+function crt_unlink {
+    if [  -L "$FILE" ]; then
+	unlink $FILE
+    fi
+}
+
+function crt_remove {
+    if [  -e "$FILE" ]; then
+	rm $FILE
+    fi
+}
+
+cd /etc/ssl/certs
+
+FILE="0d5a4e1c.0"
+crt_unlink
+FILE="7992b8bb.0"
+crt_unlink
+FILE="TÜRKTRUST_Elektronik_Sertifika_Hizmet_Sağlayıcısı_H5.pem"
+crt_unlink
+FILE="/usr/share/ca-certificates/mozilla/TÜRKTRUST_Elektronik_Sertifika_Hizmet_Sağlayıcısı_H5.crt"
+crt_remove
+
+FILE="418595b9.0"
+crt_unlink
+FILE="65b876bd.0"
+crt_unlink
+FILE="TÜBİTAK_UEKAE_Kök_Sertifika_Hizmet_Sağlayıcısı_-_Sürüm_3.pem"
+crt_unlink
+FILE="/usr/share/ca-certificates/mozilla/TÜBİTAK_UEKAE_Kök_Sertifika_Hizmet_Sağlayıcısı_-_Sürüm_3.crt"
+crt_remove
+
+FILE="60afe812.0"
+crt_unlink
+FILE="988a38cb.0"
+crt_unlink
+FILE="NetLock_Arany_=Class_Gold=_Főtanúsítvány.pem"
+crt_unlink
+FILE="/usr/share/ca-certificates/mozilla/NetLock_Arany_=Class_Gold=_Főtanúsítvány.crt"
+crt_remove
+
+FILE="7672ac4b.0"
+crt_unlink
+FILE="d957f522.0"
+crt_unlink
+FILE="Certinomis_-_Autorité_Racine.pem"
+crt_unlink
+FILE="/usr/share/ca-certificates/mozilla/Certinomis_-_Autorité_Racine.crt"
+crt_remove
+
+FILE="60afe812.0"
+crt_unlink
+FILE="988a38cb.0"
+crt_unlink
+FILE="NetLock_Arany_=Class_Gold=_Főtanúsítvány.pem"
+crt_unlink
+FILE="/usr/share/ca-certificates/mozilla/NetLock_Arany_=Class_Gold=_Főtanúsítvány.crt"
+crt_remove
+
+FILE="7672ac4b.0"
+crt_unlink
+FILE="d957f522.0"
+crt_unlink
+FILE="Certinomis_-_Autorité_Racine.pem"
+crt_unlink
+FILE="/usr/share/ca-certificates/mozilla/Certinomis_-_Autorité_Racine.crt"
+crt_remove
+
+#FILE=""
+#crt_unlink
+#FILE=""
+#crt_unlink
+#FILE=""
+#crt_unlink
+#FILE=""
+#crt_remove
+
+# EOF
