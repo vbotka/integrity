@@ -68,7 +68,7 @@ fi
 USAGE="
 integrity [-h|--help] [-V|--version] [-l|--list] [-c|--commands]
           [-s|--silent] [-d|--debug]
-          [-mh|--mutehash] [-mh|--mutemtree] [-me|--muteerrormtree]
+          [-mh|--mutehash] [-mm|--mutemtree] [-me|--muteerrormtree]
           [-i|--init] [-r|--recreate] [-a|--all|<client>]
           -- check integrity of files
 where:
