@@ -23,13 +23,13 @@
       when: ansible_os_family == "FreeBSD"
 
     - name: Install rsync (Debian)
-      apt: name="{{item}}" state="installed"
+      apt: name="{{item}}" state="present"
       with_items:
        - rsync
       when: ansible_os_family == "Debian"
 
     - name: Install rsync (RedHat)
-      yum: name="{{item}}" state="installed"
+      yum: name="{{item}}" state="present"
       with_items:
         - rsync
       when: ansible_os_family == "RedHat"
