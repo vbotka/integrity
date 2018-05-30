@@ -1,0 +1,5 @@
+#!/bin/sh
+HASH=/var/db/integrity.sha512
+sha512sum --quiet --check $HASH
+
+# EOF

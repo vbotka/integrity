@@ -1,0 +1,6 @@
+#!/bin/sh
+DIR=/var/db/integrity
+HASH=/var/db/integrity.sha512
+find $DIR -type f -print0 | xargs -0 sha512sum > $HASH
+
+# EOF

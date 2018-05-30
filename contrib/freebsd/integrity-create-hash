@@ -1,0 +1,6 @@
+#!/bin/sh
+DIR=/var/db/integrity
+HASH=/var/db/integrity.md5deep
+find $DIR -type f -print0 | xargs -0 md5deep -r > $HASH
+
+#EOF
