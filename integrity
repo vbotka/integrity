@@ -213,6 +213,7 @@ function check-integrity-hashdeep {
 	    MESSAGE="  $CLIENT hash file is empty"; log-ok
 	fi
     elif [[ $INIT -eq 1 ]]; then
+	find-files
 	create-client-hash
     else
 	MESSAGE="  $METADIR/$CLIENT.$EXTHASH does not exist"; log-err
