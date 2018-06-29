@@ -1,6 +1,6 @@
 ---
 
-- hosts: integrity-testers
+- hosts: srv
   become: yes
   become_method: sudo
 
@@ -12,91 +12,85 @@
     source_dest: "/usr/local/src/integrity-current/" # with trailing slash
     source_link: "/usr/local/src/integrity"
     source_lock: "/usr/local/src/integrity-current.lock"
-    source_lock_set: "yes"
+    source_lock_set: True
 
   tasks:
     
-    - name: Install rsync (FreeBSD)
-      pkgng: name="{{item}}" state="present"
+    - name: "Install packages FreeBSD"
+      pkgng:
+        name: "{{ item }}"
       with_items:
         - rsync
       when: ansible_os_family == "FreeBSD"
 
-    - name: Install rsync (Debian)
-      apt: name="{{item}}" state="present"
+    - name: "Install packages Linux"
+      package:
+        name: "{{ item }}"
       with_items:
        - rsync
-      when: ansible_os_family == "Debian"
+      when: (ansible_os_family == "Debian") or
+            (ansible_os_family == "RedHat")
 
-    - name: Install rsync (RedHat)
-      yum: name="{{item}}" state="present"
-      with_items:
-        - rsync
-      when: ansible_os_family == "RedHat"
-    
-      # Bug: Synchronize module asking for a password during playbook run #2156
-      # https://github.com/ansible/ansible-modules-core/issues/2156
-      # Fixed in ansible 2.0.1
-      # Workaround: Make dest writeable by ansible_user and disable sudo
+    - name: "Create {{ source_dest }}"
+      file:
+        state: directory
+        path: "{{ source_dest }}"
+#       owner="{{ansible_user}}"
+#       group={{ "wheel" if ansible_os_family == "FreeBSD" else "adm" }}
+#       mode="0775"
 
-    - name: Set permissions and owner/group of {{source_dest}}
-      file: >
-        path="{{source_dest}}"
-        state="directory"
-        owner="{{ansible_user}}"
-        group={{ "wheel" if ansible_os_family == "FreeBSD" else "adm" }}
-        mode="0775"
-
-    - name: Copy current source to {{source_dest}}
-      become: no
+    - name: "Copy current source to {{ source_dest }}"
       synchronize:
-        src: "{{source_path}}"
-        dest: "{{source_dest}}"
-        recursive: "yes"
-        archive: "no"
+        src: "{{ source_path }}"
+        dest: "{{ source_dest }}"
         rsync_opts:
           - "--no-motd"
           - "--exclude=.git"
     
-    - name: Create symbolic link to {{source_dest}}
-      file: >
-        src="{{source_dest}}"
-        dest="{{source_link}}"
-        state="link"
-        force="yes"
+    - name: "Create symbolic link to {{ source_dest }}"
+      file:
+        state: link
+        src: "{{ source_dest }}"
+        dest: "{{ source_link }}"
+        force: yes
 
-    - name: Lock development version
-      command: sh -c "if [ ! -e {{source_lock}} ]; then touch {{source_lock}}; printf 'current-lock-changed'; fi"
-      register: command_result
-      when: source_lock_set == "yes"
-      changed_when: command_result.stdout == "current-lock-changed"
+    - name: "Lock development version"
+      command: "touch {{ source_lock }}"
+      args:
+        creates: "{{ source_lock }}"
+      when: source_lock_set
     
-    - name: Copy scripts to {{bin_dir}}
-      copy: >
-        src="{{source_link}}/{{item}}"
-        dest="{{bin_dir}}/{{item}}"
-        remote_src="yes"
-        owner="root"
-        group={{ "wheel" if ansible_os_family == "FreeBSD" else "root" }}
-        mode="0755"
-      with_items: "{{bin_items}}"
+    - name: "Copy scripts to {{ bin_dir }}"
+      copy:
+        src: "{{ source_link }}/{{ item }}"
+        dest: "{{ bin_dir }}/{{ item }}"
+        remote_src: yes
+        owner: "root"
+        group: "{{ (ansible_os_family == 'FreeBSD') | ternary('wheel', 'root') }}"
+        mode: "0755"
+      loop: "{{bin_items}}"
+      when: not ansible_check_mode
 
-    - name: Use /usr/local/bin/bash in FreeBSD
-      lineinfile: >
-        dest="{{bin_dir}}/{{item}}"
-        regexp="^#!"
-        line="#!/usr/local/bin/bash"
-      with_items: "{{bin_items}}"
-      when: ansible_os_family == "FreeBSD"
+    - name: "Use /usr/local/bin/bash in FreeBSD"
+      lineinfile:
+        dest: "{{ bin_dir }}/{{ item }}"
+        regexp: "^#!"
+        line: "#!/usr/local/bin/bash"
+      loop: "{{ bin_items }}"
+      when:
+        - ansible_os_family == "FreeBSD"
+        - not ansible_check_mode
 
-    - name: Use /bin/bash in Linux
-      lineinfile: >
-        dest="{{bin_dir}}/{{item}}"
-        regexp="^#!"
-        line="#!/bin/bash"
-      with_items: "{{bin_items}}"
-      when: ansible_os_family == "Debian" or
-            ansible_os_family == "RedHat"
+    - name: "Use /bin/bash in Linux"
+      lineinfile:
+        dest: "{{ bin_dir }}/{{ item }}"
+        regexp: "^#!"
+        line: "#!/bin/bash"
+      loop: "{{ bin_items }}"
+      when:
+        - (ansible_os_family == "Debian") or
+          (ansible_os_family == "RedHat")
+        - not ansible_check_mode
 
 # EOF
 ...
